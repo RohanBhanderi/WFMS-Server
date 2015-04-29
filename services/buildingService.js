@@ -10,28 +10,24 @@ exports.handle_request = function(req,callback){
 	
 	switch(operation){
 		
-		case "createClient" : 
-			createClient(message,callback);
+		case "createBuilding" : 
+			createBuilding(message,callback);
 			break;
 
-		case "updateClientBillingInfo" : 
-			updateClientBillingInfo(message,callback);
+		case "getBuildingClientReport" : 
+			getBuildingClientReport(message,callback);
 			break;
 			
-		case "updateClient" :
-			updateClient(message,callback);
+		case "getBuilding" :
+			getBuilding(message,callback);
 			break;
 			
-		case "getClient" :
-			getClient(message,callback);
+		case "editBuilding" :
+			editBuilding(message,callback);
 			break;
-			
-		case "deleteClient" :
-			deleteClient(message,callback);
-			break;
-			
-		case "listAllClients" :
-			listAllClients(message,callback);
+
+		case "deleteBuilding" :
+			deleteBuilding(message,callback);
 			break;
 			
 		default : 
@@ -39,60 +35,34 @@ exports.handle_request = function(req,callback){
 	}
 };
 
-// Save or update client
-function createClient(msg,callback){
-	var formDate = moment(msg.start_date,'DD-MM-YYYY').toDate();
-		var toDate = moment(msg.end_date,'DD-MM-YYYY').toDate();
-
-		var queryParam = {
-				idperson : msg.idperson,
-				start_date : formDate,
-				end_date : toDate,
-				idclient : msg.idclient
-		}
-
-		mysql.queryDb("INSERT INTO client SET ?", queryParam, function(err, response) {
-			if (err) {
-				console.log("Error while perfoming query !!!");
-				callback({ status : 500, message : "Please try again later" });
-			} else {
-				callback({ status : 200, message : "Client has been added Succesfully" });
-			}
-		});
-}
-
-// Save updateClientBillingInfo
-function updateClientBillingInfo(msg,callback){
-	mysql.queryDb("select (abs(DATEDIFF(building.release_date,building.start_date)))*building.no_of_guards*10 AS Amount_Due, building.idbuilding, building.no_of_guards, building.start_date, building.buildingname, building.release_date from wfms.building inner join wfms.client on building.idclient = client.idclient where ?? = ? AND ?? = 'Active';",['building.idclient',msg.idclient,'building.buildingstatus'],function(err,rows){
-		if (err) {
-			callback({ status : 500, message : "Error while retrieving data" });
-		} else {
-			callback({ status : 200, message : "Value is coming",result:rows });
-		}
-	});
-}
-
-//Update Client
-function updateClient(msg,callback){
-	var newParam ={
+// Save Building
+function createBuilding(msg,callback){
+	var releaseDate = moment(msg.release_date,'DD-MM-YYYY').toDate();
+		
+	var queryParam = {
+			idclient : msg.idclient,
+			buildingname: msg.buildingname,
 			start_date : moment(msg.start_date,'DD-MM-YYYY').toDate(),
-			end_date : moment(msg.end_date,'DD-MM-YYYY').toDate()
-	};
-	mysql.queryDb("UPDATE client SET ? WHERE ?? = ?", 
-		[newParam,'idperson',msg.idperson], 
-		function(err, response) {
+			release_date : moment(msg.release_date,'DD-MM-YYYY').toDate(),
+			address : msg.address,
+			checkpoint : msg.checkpoint,
+			no_of_guards: msg.no_of_guards,
+			buildingstatus:"Active"
+	}
+
+	mysql.queryDb("INSERT INTO building SET ?", queryParam, function(err, response) {
 		if (err) {
-			console.log("Error while perfoming query !!!" + err);
+			console.log("Error while perfoming query !!!");
 			callback({ status : 500, message : "Please try again later" });
 		} else {
-			callback({ status : 200, message : "Client has been updated Succesfully" });
+			callback({ status : 200, message : "building has been added Succesfully" });
 		}
 	});
 }
 
-/// get client
-function getClient(msg,callback){
-	mysql.queryDb('SELECT * FROM client WHERE ?',[{idperson:msg.idperson}],function(err,rows){
+//Get Building Client Report
+function getBuildingClientReport(msg,callback){
+	mysql.queryDb('SELECT buildingname FROM building WHERE ? and buildingstatus = "Active"',[{idclient:msg.idperson}],function(err,rows){
 		if (err) {
 			callback({ status : 500, message : "Error while retrieving data" });
 		} else {
@@ -101,31 +71,53 @@ function getClient(msg,callback){
 	});
 }
 
-// Delete client
-function deleteClient(msg,callback){
-	var idperson = msg.idperson,
-	idclient = msg.idclient,
-	start_date = msg.start_date,
-	end_date = msg.end_date;
-
-	mysql.queryDb('DELETE FROM client WHERE ?',[{idperson:idperson}],function(err,response){
+//Get Building
+function getBuilding(msg,callback){
+	mysql.queryDb('SELECT * FROM building WHERE ? and buildingstatus = "Active"',[{idclient:msg.idperson}],function(err,rows){
 		if (err) {
-			console.log("Error while deleting client details !!!" + err);
-			callback({ status : 500, message : "Error while deleting client details !!!" });
+			callback({ status : 500, message : "Error while retrieving data" });
 		} else {
-			callback({ status : 200, message : "Client details has been deleted Succesfully" });
+			callback({ status : 200, data : rows });
 		}
 	});
 }
 
-//list all clients
-function listAllClients(msg,callback){
-	mysql.queryDb('SELECT * FROM client left join person on client.idperson = person.idperson',function(err,rows){
+/// get client
+function editBuilding(msg,callback){
+	var newParam ={
+		buildingname : msg.buildingname,
+		start_date : moment(msg.start_date,'YYYY-MM-DD').toDate(),
+		release_date : moment(msg.release_date,'YYYY-MM-DD').toDate(),
+		address : msg.address,
+		checkpoint : msg.checkpoint,
+		no_of_guards: msg.no_of_guards,
+	};
+
+	mysql.queryDb("UPDATE building SET ? WHERE ?? = ?", 
+		[newParam,'idbuilding',msg.idbuilding], 
+		function(err, response) {
 		if (err) {
-			console.log("Error while listing all the client details !!!"  + err);
-			callback({ status : 500, message : "Error while listing client details !!!" });
+			console.log("Error while perfoming query !!!" + err);
+			callback({ status : 500, message : "Please try again later" });
 		} else {
-			callback({ status : 200, data : rows});
+			callback({ status : 200, message : "building has been updated Succesfully" });
+		}
+	});
+}
+
+// delete client
+function deleteBuilding(msg,callback){
+	var buildingid = req.params.buildingid;
+	var newParam = {
+		buildingstatus : "Disable"
+	};
+
+	mysql.queryDb('UPDATE building SET ? WHERE ?? = ?',[newParam,'idbuilding',msg.buildingid],function(err,response){
+		if (err) {
+			console.log("Error while deleting building details !!!" + err);
+			callback({ status : 500, message : "Error while deleting building details !!!" });
+		} else {
+			callback({ status : 200, message : "building details has been deleted Succesfully" });
 		}
 	});
 }
