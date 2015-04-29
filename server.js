@@ -1,11 +1,11 @@
 var amqp = require('amqp');
 var mysql = require('./util/mysql');
-var admin = require('./services/admin');
-var alert = require('./services/alert');
-var building = require('./services/building');
-var client = require('./services/client');
-var guard = require('./services/guard');
-var report = require('./services/report');
+var adminService = require('./services/adminService');
+var alertService = require('./services/alertService');
+var buildingService = require('./services/buildingService');
+var clientService = require('./services/clientService');
+var guardService = require('./services/guardService');
+var reportService = require('./services/reportService');
 	
 //DB Pool Initilization
 mysql.createConnPool();
@@ -19,7 +19,7 @@ cnn.on('ready', function(){
 	cnn.queue('admin_queue', function(q){
 		q.subscribe(function(message, headers, deliveryInfo, m){
 			console.log("Message: "+JSON.stringify(message));
-			admin.handle_request(message, function(res){
+			adminService.handle_request(message, function(res){
 				publishQueue(cnn,m,res);
 			});
 		});
@@ -29,7 +29,7 @@ cnn.on('ready', function(){
 	cnn.queue('alert_queue', function(q){
 		q.subscribe(function(message, headers, deliveryInfo, m){
 			console.log("Message: "+JSON.stringify(message));
-			alert.handle_request(message, function(res){
+			alertService.handle_request(message, function(res){
 				publishQueue(cnn,m,res);
 			});
 		});
@@ -39,7 +39,7 @@ cnn.on('ready', function(){
 	cnn.queue('building_queue', function(q){
 		q.subscribe(function(message, headers, deliveryInfo, m){
 			console.log("Message: "+JSON.stringify(message));
-			building.handle_request(message, function(res){
+			buildingService.handle_request(message, function(res){
 				publishQueue(cnn,m,res);
 			});
 		});
@@ -49,7 +49,7 @@ cnn.on('ready', function(){
 	cnn.queue('client_queue', function(q){
 		q.subscribe(function(message, headers, deliveryInfo, m){
 			console.log("Message: "+JSON.stringify(message));
-			client.handle_request(message, function(res){
+			clientService.handle_request(message, function(res){
 				publishQueue(cnn,m,res);
 			});
 		});
@@ -59,7 +59,7 @@ cnn.on('ready', function(){
 	cnn.queue('guard_queue', function(q){
 		q.subscribe(function(message, headers, deliveryInfo, m){
 			console.log("Message: "+JSON.stringify(message));
-			guard.handle_request(message, function(res){
+			guardService.handle_request(message, function(res){
 				publishQueue(cnn,m,res);
 			});
 		});
@@ -69,7 +69,7 @@ cnn.on('ready', function(){
 	cnn.queue('report_queue', function(q){
 		q.subscribe(function(message, headers, deliveryInfo, m){
 			console.log("Message: "+JSON.stringify(message));
-			report.handle_request(message, function(res){
+			reportService.handle_request(message, function(res){
 				publishQueue(cnn,m,res);
 			});
 		});
