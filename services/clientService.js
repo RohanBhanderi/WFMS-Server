@@ -34,6 +34,11 @@ exports.handle_request = function(req,callback){
 			listAllClients(message,callback);
 			break;
 			
+			
+		case "getClientInfo" :
+			getClientInfo(message,callback);
+			break;
+			
 		default : 
 			callback({status : 400,message : "Bad Request"});
 	}
@@ -121,6 +126,19 @@ function deleteClient(msg,callback){
 //list all clients
 function listAllClients(msg,callback){
 	mysql.queryDb('SELECT * FROM client left join person on client.idperson = person.idperson',function(err,rows){
+		if (err) {
+			console.log("Error while listing all the client details !!!"  + err);
+			callback({ status : 500, message : "Error while listing client details !!!" });
+		} else {
+			callback({ status : 200, data : rows});
+		}
+	});
+}
+
+
+//getClientInfo
+function getClientInfo(msg,callback){
+	mysql.queryDb('SELECT * FROM person WHERE ?',[{idperson:msg.idperson}],function(err,rows){
 		if (err) {
 			console.log("Error while listing all the client details !!!"  + err);
 			callback({ status : 500, message : "Error while listing client details !!!" });
