@@ -3,6 +3,8 @@
 var mysql = require('../util/mysql'), 
 	moment = require('moment'),
 	dateutil = require('../util/dateutil');
+var crypto = require('crypto');
+
 
 exports.handle_request = function(req,callback){
 	var operation = req.operation;
@@ -10,28 +12,35 @@ exports.handle_request = function(req,callback){
 	
 	switch(operation){
 		
-		case "createClient" : 
-			createClient(message,callback);
+		case "createGuard" : 
+			createGuard(message,callback);
+			break;
+		
+		case "updateGuard" : 
+			updateGuard(message,callback);
 			break;
 
-		case "updateClientBillingInfo" : 
-			updateClientBillingInfo(message,callback);
+			
+		case "listAllGuards" :
+			listAllGuards(message,callback);
 			break;
 			
-		case "updateClient" :
-			updateClient(message,callback);
+			
+		case "deleteGuard" : 
+			deleteGuard(message,callback);
+			break;	
+		
+			
+		case "getGuard" :
+			getGuard(message,callback);
 			break;
 			
-		case "getClient" :
-			getClient(message,callback);
+		case "searchGuard" :
+			searchGuard(message,callback);
 			break;
 			
-		case "deleteClient" :
-			deleteClient(message,callback);
-			break;
-			
-		case "listAllClients" :
-			listAllClients(message,callback);
+		case "getGuardsForAssignments" :
+			getGuardsForAssignments(message,callback);
 			break;
 			
 		default : 
@@ -39,59 +48,187 @@ exports.handle_request = function(req,callback){
 	}
 };
 
-// Save or update client
-function createClient(msg,callback){
-	var formDate = moment(msg.start_date,'DD-MM-YYYY').toDate();
-		var toDate = moment(msg.end_date,'DD-MM-YYYY').toDate();
+// Create Guard
+function createGuard(msg,callback){
+	try{
+	console.log("create guard inside");
+    var pwu = msg.password;
+    var un = msg.email;
+    var fn = msg.fname;
+    var ln = msg.lname;
+    var usertype = msg.usertype;
+    var address = msg.address;
+    var city = msg.city;
+    var zipcode = msg.zipcode;
+    var phonenumber = msg.phonenumber;
+     
+    var new_salt = Math.round((new Date().valueOf() * Math.random())) + '';
+    var pw = crypto.createHmac('sha1', new_salt).update(pwu).digest('hex');
+    var created = dateutil.now();
+    
+    var data={
+        email:un,
+        password_hash:pw,
+        status:true,
+        type:usertype,
+        created_date:created,
+        last_login:created,
+        password_salt:new_salt
+    };
 
-		var queryParam = {
-				idperson : msg.idperson,
-				start_date : formDate,
-				end_date : toDate,
-				idclient : msg.idclient
-		}
+    mysql.queryDb('insert into login set ?',data,function(err,result){
+      if(err) {
+        console.log(err);
+            callback({ status : 500, message : "Please try again later" });
+      } else {
+            
+        var idperson = result.insertId;
 
-		mysql.queryDb("INSERT INTO client SET ?", queryParam, function(err, response) {
-			if (err) {
-				console.log("Error while perfoming query !!!");
-				callback({ status : 500, message : "Please try again later" });
-			} else {
-				callback({ status : 200, message : "Client has been added Succesfully" });
-			}
-		});
+        mysql.queryDb('insert into person set ?',{idperson: idperson,fname : fn,
+                  lname : ln,
+                  email : un,
+                  address: address,
+                  city:city,
+                  zipcode:zipcode,
+                  phonenumber:phonenumber
+                  },
+        function(err,result){
+          if(err) {
+           callback({ status : 500, message : "Please try again later" });
+          } else {
+        	  		var queryParam = {
+      				idperson :	idperson,
+      				start_date : msg.start_date,
+      				end_date : msg.end_date,
+      				weekly_working_set : msg.weekly_working_set,
+      				bgstatus: msg.bgstatus
+        	  		}
+
+      		mysql.queryDb("INSERT INTO guard SET ?", queryParam, function(err, response) {
+      			if (err) {
+      				console.log("Error while perfoming query !!!");
+      				callback({ status : 500, message : "Please try again later" });
+      			} else {
+      				console.log("success so far");
+      				callback({ status : 200, message : "Guard has been added Succesfully" });
+      			}
+      		});
+        	  
+          }
+        });
+      }
+    });
+	}catch(e){console.log(e);
+	}
 }
 
-// Save updateClientBillingInfo
-function updateClientBillingInfo(msg,callback){
-	mysql.queryDb("select (abs(DATEDIFF(building.release_date,building.start_date)))*building.no_of_guards*10 AS Amount_Due, building.idbuilding, building.no_of_guards, building.start_date, building.buildingname, building.release_date from wfms.building inner join wfms.client on building.idclient = client.idclient where ?? = ? AND ?? = 'Active';",['building.idclient',msg.idclient,'building.buildingstatus'],function(err,rows){
-		if (err) {
-			callback({ status : 500, message : "Error while retrieving data" });
-		} else {
-			callback({ status : 200, message : "Value is coming",result:rows });
-		}
-	});
-}
 
-//Update Client
-function updateClient(msg,callback){
+//updateGuard
+
+
+function updateGuard(msg,callback){
 	var newParam ={
-			start_date : moment(msg.start_date,'DD-MM-YYYY').toDate(),
-			end_date : moment(msg.end_date,'DD-MM-YYYY').toDate()
+			
+			weekly_working_set : msg.body.weekly_working_set,
+			bgstatus: msg.body.bgstatus,
+			start_date :moment(msg.body.start_date,'DD-MM-YYYY').toDate(), 
+			end_date : moment(msg.body.end_date,'DD-MM-YYYY').toDate()
 	};
-	mysql.queryDb("UPDATE client SET ? WHERE ?? = ?", 
-		[newParam,'idperson',msg.idperson], 
+	
+	
+	
+	mysql.queryDb("UPDATE guard SET ? WHERE ?? = ?", 
+		[newParam,'idguard',msg.idguard], 
 		function(err, response) {
 		if (err) {
 			console.log("Error while perfoming query !!!" + err);
 			callback({ status : 500, message : "Please try again later" });
+		} 
+		else
+			{
+			var newParam ={
+					
+					fname : msg.body.fname,
+					lname: msg.body.lname,
+					address: msg.body.address,
+					city: msg.body.city,
+					zipcode: msg.body.zipcode,
+					email: msg.body.email,
+					phonenumber: msg.body.phonenumber,
+				};
+		
+			
+			mysql.queryDb("UPDATE person SET ? WHERE ?? = ?", 
+				[newParam,'idperson',msg.body.idperson], 
+				function(err, response) {
+				if (err) {
+					console.log("Error while perfoming query !!!" + err);
+					callback({ status : 500, message : "Please try again later" });
+				} 
+			else {
+			
+				callback({ status : 200, message : "Guard has been added Succesfully" });
+				
+		}
+		});
+			}
+	});
+}
+
+
+//listAll Guards
+function listAllGuards(msg,callback){
+	mysql.queryDb('select * from guard left join person on guard.idperson = person.idperson',function(err,rows){
+		if (err) {
+			callback({ status : 500, message : "Error while retrieving data" });
+			//console.log("Error while listing all the guard details !!!"  + err);
+			//res.status(500).json({ status : 500, message : "Error while listing guard details !!!" });
 		} else {
-			callback({ status : 200, message : "Client has been updated Succesfully" });
+			callback({ status : 200, message : "Value is coming",data:rows });
+
+			//res.status(200).json({ status : 200, data : rows});
 		}
 	});
 }
 
-/// get client
-function getClient(msg,callback){
+
+// DeleteGuard
+function deleteGuard(msg,callback){
+	try{
+	console.log(msg.idguard);
+	//idguard = msg.idguard;
+	
+	mysql.queryDb('DELETE FROM guard WHERE ?',[{idguard:msg.idguard}],function(err,response){
+		if (err) {
+			//console.log("Error while deleting guard details !!!");
+			//console.log(err);
+			callback({ status : 500, message : "Error while deleting guard details !!!" });
+		} else {
+			callback({ status : 200, message : "Guard details has been deleted Succesfully" });
+		}
+	});
+	}
+	catch(e){console.log(e)}
+
+}
+
+
+
+/// get guard
+function getGuard(msg,callback){
+	
+	
+	idguard = msg.idguard,
+	mysql.queryDb('SELECT * FROM guard WHERE ?',[{idguard:idguard}],function(err,rows){
+
+		if (err) {
+			callback({ status : 500, message : "Error while retrieving data" });
+		} else {
+			callback({ status : 200, data : rows });
+		}
+	});
+	
+	/*
 	mysql.queryDb('SELECT * FROM client WHERE ?',[{idperson:msg.idperson}],function(err,rows){
 		if (err) {
 			callback({ status : 500, message : "Error while retrieving data" });
@@ -99,33 +236,43 @@ function getClient(msg,callback){
 			callback({ status : 200, data : rows });
 		}
 	});
+	*/
 }
 
-// Delete client
-function deleteClient(msg,callback){
-	var idperson = msg.idperson,
-	idclient = msg.idclient,
-	start_date = msg.start_date,
-	end_date = msg.end_date;
 
-	mysql.queryDb('DELETE FROM client WHERE ?',[{idperson:idperson}],function(err,response){
-		if (err) {
-			console.log("Error while deleting client details !!!" + err);
-			callback({ status : 500, message : "Error while deleting client details !!!" });
-		} else {
-			callback({ status : 200, message : "Client details has been deleted Succesfully" });
-		}
-	});
-}
+//searchGuard
 
-//list all clients
-function listAllClients(msg,callback){
-	mysql.queryDb('SELECT * FROM client left join person on client.idperson = person.idperson',function(err,rows){
+function searchGuard(msg,callback){
+	
+	
+	mysql.queryDb('select concat(?? , " " , ??) as name, ?? from person left outer join login on ?? = ?? where login.type= "Guard"',['person.fname','person.lname','person.email','person.idperson','login.idperson','Guard'],function(err,rows){
 		if (err) {
-			console.log("Error while listing all the client details !!!"  + err);
-			callback({ status : 500, message : "Error while listing client details !!!" });
+			console.log("Error while listing all the guard details !!!"  + err);
+			callback({ status : 500, message : "Error while listing guard details !!!" });
 		} else {
 			callback({ status : 200, data : rows});
 		}
 	});
+
 }
+
+//find the guards who can be assigned to a building based on the schedule.
+function getGuardsForAssignments(msg,callback){
+ 	var qry = "select * from guard where idguard "+
+			"not in (select s.idguard from gaurdbuildingschedule s, client c "+
+			"where s.from <= c.start_date " +
+			"and s.to >= c.end_date)"
+	mysql.queryDb(qry,function(err,rows){
+		if (err) {
+			console.log("Error while listing all the guard details !!!"  + err);
+			callback({ status : 500, message : "Error while listing guard details !!!" });
+		} else {
+			callback({ status : 200, data : rows});
+		}
+	});
+
+}
+
+
+
+
