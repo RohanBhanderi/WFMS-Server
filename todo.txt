@@ -2,3 +2,8 @@
 2. admin -> building information for guard
 3. admin -> Edit , Delete Client
 4. 
+Maps for client
+guard login and admin login
+
+search for alert
+report for clinet
