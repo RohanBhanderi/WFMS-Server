@@ -38,6 +38,10 @@ exports.handle_request = function(req,callback){
 		case "getClientInfo" :
 			getClientInfo(message,callback);
 			break;
+
+		case "getPendingClients" :
+			getPendingClients(message,callback);
+			break;
 			
 		default : 
 			callback({status : 400,message : "Bad Request"});
@@ -141,6 +145,18 @@ function getClientInfo(msg,callback){
 	mysql.queryDb('SELECT * FROM person WHERE ?',[{idperson:msg.idperson}],function(err,rows){
 		if (err) {
 			console.log("Error while listing all the client details !!!"  + err);
+			callback({ status : 500, message : "Error while listing client details !!!" });
+		} else {
+			callback({ status : 200, data : rows});
+		}
+	});
+}
+
+//Get the client details for which the guards are not assigned to their building
+function getPendingClients(msg,callback){
+	mysql.queryDb("select * from building where guard_assign_status='PNDG'",function(err,rows){
+		if (err) {
+			console.log("Error while listing the pending client details !!!"  + err);
 			callback({ status : 500, message : "Error while listing client details !!!" });
 		} else {
 			callback({ status : 200, data : rows});

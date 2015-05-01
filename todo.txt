@@ -13,3 +13,8 @@
 · List all Alerts on each Client known by the system 
 · Search for a Alert based on attributes 
 · Display information about an Alert (attributes plus guard information who filed this Alert) 
+
+----------
+Can client add more guards, afterwords ?
+How can client remove some assigned guards ?
+what about reassignment ? 
