@@ -258,10 +258,21 @@ function searchGuard(msg,callback){
 
 //find the guards who can be assigned to a building based on the schedule.
 function getGuardsForAssignments(msg,callback){
- 	var qry = "select * from guard where idguard "+
-			"not in (select s.idguard from gaurdbuildingschedule s, client c "+
-			"where s.from <= c.start_date " +
-			"and s.to >= c.end_date)"
+
+	//TODO: Think whether we need to get from and to date for building to guard assignment
+ 	// var qry = "select * from guard where idguard "+
+		// 	"not in (select s.idguard from gaurdbuildingschedule s, client c "+
+		// 	"where s.from <= c.start_date " +
+		// 	"and s.to >= c.end_date)";
+	
+	//As of now we are checking if the building release date after the guard schedule to date
+	//then we can assign guard  
+	var qry = "select * from guard g "+
+			"join person p on g.idperson = p.idperson "+
+			"where g.idguard not in (select s.idguard from gaurdbuildingschedule s, building b "+
+			"where s.from <= current_date() " +
+			"and s.to >= b.release_date)"
+
 	mysql.queryDb(qry,function(err,rows){
 		if (err) {
 			console.log("Error while listing all the guard details !!!"  + err);
