@@ -39,10 +39,6 @@ exports.handle_request = function(req,callback){
 			searchGuard(message,callback);
 			break;
 			
-		case "getGuardsForAssignments" :
-			getGuardsForAssignments(message,callback);
-			break;
-			
 		default : 
 			callback({status : 400,message : "Bad Request"});
 	}
@@ -246,34 +242,6 @@ function searchGuard(msg,callback){
 	
 	
 	mysql.queryDb('select concat(?? , " " , ??) as name, ?? from person left outer join login on ?? = ?? where login.type= "Guard"',['person.fname','person.lname','person.email','person.idperson','login.idperson','Guard'],function(err,rows){
-		if (err) {
-			console.log("Error while listing all the guard details !!!"  + err);
-			callback({ status : 500, message : "Error while listing guard details !!!" });
-		} else {
-			callback({ status : 200, data : rows});
-		}
-	});
-
-}
-
-//find the guards who can be assigned to a building based on the schedule.
-function getGuardsForAssignments(msg,callback){
-
-	//TODO: Think whether we need to get from and to date for building to guard assignment
- 	// var qry = "select * from guard where idguard "+
-		// 	"not in (select s.idguard from gaurdbuildingschedule s, client c "+
-		// 	"where s.from <= c.start_date " +
-		// 	"and s.to >= c.end_date)";
-	
-	//As of now we are checking if the building release date after the guard schedule to date
-	//then we can assign guard  
-	var qry = "select * from guard g "+
-			"join person p on g.idperson = p.idperson "+
-			"where g.idguard not in (select s.idguard from gaurdbuildingschedule s, building b "+
-			"where s.from <= current_date() " +
-			"and s.to >= b.release_date)"
-
-	mysql.queryDb(qry,function(err,rows){
 		if (err) {
 			console.log("Error while listing all the guard details !!!"  + err);
 			callback({ status : 500, message : "Error while listing guard details !!!" });
