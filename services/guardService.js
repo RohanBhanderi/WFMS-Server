@@ -39,10 +39,6 @@ exports.handle_request = function(req,callback){
 			searchGuard(message,callback);
 			break;
 			
-		case "getGuardsForAssignments" :
-			getGuardsForAssignments(message,callback);
-			break;
-			
 		default : 
 			callback({status : 400,message : "Bad Request"});
 	}
@@ -246,23 +242,6 @@ function searchGuard(msg,callback){
 	
 	
 	mysql.queryDb('select concat(?? , " " , ??) as name, ?? from person left outer join login on ?? = ?? where login.type= "Guard"',['person.fname','person.lname','person.email','person.idperson','login.idperson','Guard'],function(err,rows){
-		if (err) {
-			console.log("Error while listing all the guard details !!!"  + err);
-			callback({ status : 500, message : "Error while listing guard details !!!" });
-		} else {
-			callback({ status : 200, data : rows});
-		}
-	});
-
-}
-
-//find the guards who can be assigned to a building based on the schedule.
-function getGuardsForAssignments(msg,callback){
- 	var qry = "select * from guard where idguard "+
-			"not in (select s.idguard from gaurdbuildingschedule s, client c "+
-			"where s.from <= c.start_date " +
-			"and s.to >= c.end_date)"
-	mysql.queryDb(qry,function(err,rows){
 		if (err) {
 			console.log("Error while listing all the guard details !!!"  + err);
 			callback({ status : 500, message : "Error while listing guard details !!!" });
