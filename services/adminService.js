@@ -30,6 +30,10 @@ exports.handle_request = function(req,callback){
 			getPendingClients(message,callback);
 			break;
 
+		case "assignGuards" :
+			assignGuards(message,callback);
+			break;
+
 		default : 
 			callback({status : 400,message : "Bad Request"});
 	}
@@ -124,7 +128,7 @@ function getGuardsForAssignments(msg,callback){
 
 //Get the client details for which the guards are not assigned to their building
 function getPendingClients(msg,callback){
-	mysql.queryDb("select c.idclient,p.idperson, "+
+	mysql.queryDb("select c.idclient,p.idperson,b.idbuilding, "+
 		"CONCAT(p.fname,' ',p.lname) as name,b.buildingname,CONCAT(p.address,' ',p.city) as address,b.no_of_guards,b.release_date "+
 		"from building b "+
 		"join client c on b.idclient = c.idclient "+
@@ -137,4 +141,29 @@ function getPendingClients(msg,callback){
 			callback({ status : 200, data : rows});
 		}
 	});
+}
+
+function assignGuards(msg,callback){
+
+	var guardDtls = msg.guardDtls;
+	guardDtls.forEach(function(guard){
+
+			var queryParam = {
+					from : dateutil.now(),
+					to    : msg.end_date,
+					idbuilding : msg.idbuilding,
+					idguard : guard.idguard
+			}
+
+			mysql.queryDb("INSERT INTO gaurdbuildingschedule SET ?", queryParam, function(err, response) {
+				if (err) {
+					console.log("Error while perfoming query !!!" + err);
+					callback({ status : 500, message : "Please try again later" });
+				} else {
+					
+				}
+			});
+		
+	});
+	callback({ status : 200, message : "gaurdbuildingschedule records has been added Successfully" });
 }
