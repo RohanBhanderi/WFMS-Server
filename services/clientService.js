@@ -154,7 +154,11 @@ function getClientInfo(msg,callback){
 
 //Get the client details for which the guards are not assigned to their building
 function getPendingClients(msg,callback){
-	mysql.queryDb("select * from building where guard_assign_status='PNDG'",function(err,rows){
+	mysql.queryDb("select c.idclient,p.idperson, "+
+		"CONCAT(p.fname,' ',p.lname) as name,b.buildingname,CONCAT(p.address,' ',p.city) as address,b.release_date from building b "+
+		"join client c on b.idclient = c.idclient "+
+		"join person p on c.idperson = p.idperson "+
+		"where b.guard_assign_status='PNDG'",function(err,rows){
 		if (err) {
 			console.log("Error while listing the pending client details !!!"  + err);
 			callback({ status : 500, message : "Error while listing client details !!!" });
