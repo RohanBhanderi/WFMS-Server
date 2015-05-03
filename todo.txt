@@ -1,13 +1,13 @@
 1. admin -> Search screen for guard 
-2. admin -> building information for guard
-3. admin -> Edit , Delete Client
+#2. admin -> building information for guard
+#3. admin -> Edit , Delete Client
 
 4. 
 Maps for client
 guard login and admin login
 
-search for alert
-report for clinet
+#search for alert
+#report for clinet
 
 
 4.  List all Reports on each building known by the system 
