@@ -10,6 +10,9 @@ exports.handle_request = function(req,callback){
 	
 	switch(operation){
 		
+		case "editPerson":
+			editPerson(message,callback);
+			break;
 		case "createAlert" : 
 			createAlert(message,callback);
 			break;
@@ -40,6 +43,30 @@ exports.handle_request = function(req,callback){
 };
 
 // Save alert
+
+function editPerson(msg,callback){
+	var newParam ={
+		fname: msg.fname,
+		lname: msg.lname,
+		address: msg.address,
+		city: msg.city,
+		zipcode: msg.zipcode,
+		email: msg.email,
+		phonenumber: msg.phonenumber
+		
+	};
+	mysql.queryDb("UPDATE person SET ? WHERE ?? = ?", 
+		[newParam,'idperson',msg.idperson], 
+		function(err, response) {
+		if (err) {
+			console.log("Error while perfoming query !!!" + err);
+			callback({ status : 500, message : "Please try again later" });
+		} else {
+			callback({ status : 200, message : "Client has been updated Succesfully" });
+		}
+	});
+
+}
 function createAlert(msg,callback){
 	var queryParam = {
 			idalert : msg.idalert,
