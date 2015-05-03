@@ -174,7 +174,7 @@ function updateGuard(msg,callback){
 
 //listAll Guards
 function listAllGuards(msg,callback){
-	mysql.queryDb('select * from guard left join person on guard.idperson = person.idperson',function(err,rows){
+	mysql.queryDb('select guard.*, person.*, gbs.idbuilding, building.buildingname from guard left join person on guard.idperson = person.idperson left join gaurdbuildingschedule as gbs on guard.idguard = gbs.idguard left join building on gbs.idbuilding = building.idbuilding',function(err,rows){
 		if (err) {
 			callback({ status : 500, message : "Error while retrieving data" });
 			//console.log("Error while listing all the guard details !!!"  + err);
