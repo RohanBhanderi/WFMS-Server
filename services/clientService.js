@@ -38,7 +38,7 @@ exports.handle_request = function(req,callback){
 		case "getClientInfo" :
 			getClientInfo(message,callback);
 			break;
-			
+
 		default : 
 			callback({status : 400,message : "Bad Request"});
 	}
@@ -80,8 +80,9 @@ function updateClientBillingInfo(msg,callback){
 //Update Client
 function updateClient(msg,callback){
 	var newParam ={
-		start_date : moment(msg.start_date,'DD-MM-YYYY').toDate(),
-		end_date : moment(msg.end_date,'DD-MM-YYYY').toDate()
+		start_date : moment(msg.start_date).format('YYYY-MM-DD'),
+		end_date : moment(msg.end_date).format('YYYY-MM-DD')
+		
 	};
 	mysql.queryDb("UPDATE client SET ? WHERE ?? = ?", 
 		[newParam,'idperson',msg.idperson], 
