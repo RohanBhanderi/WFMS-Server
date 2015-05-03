@@ -4,18 +4,18 @@ var mysql = require('../util/mysql'),
 	moment = require('moment'),
 	dateutil = require('../util/dateutil');
 
-exports.handle_request = function(req,callback){
-	var operation = req.operation;
-	var message = req.message;
+exports.handle_request = function(msg,callback){
+	var operation = msg.operation;
+	var message = msg.message;
 	
 	switch(operation){
 		
-		case "createClient" : 
-			createClient(message,callback);
+		case "createAlert" : 
+			createAlert(message,callback);
 			break;
 
-		case "updateClientBillingInfo" : 
-			updateClientBillingInfo(message,callback);
+		case "alertPerBuilding" : 
+			alertPerBuilding(message,callback);
 			break;
 			
 		case "updateClient" :
@@ -40,93 +40,243 @@ exports.handle_request = function(req,callback){
 };
 
 // Save or update client
-function createClient(msg,callback){
-	
-	var formDate = moment(msg.start_date,'DD-MM-YYYY').toDate();
-		var toDate = moment(msg.end_date,'DD-MM-YYYY').toDate();
+function createAlert(msg,callback){
+	console.log("DateMy: "+msg.datemy);
+	var datemy = moment(msg.datemy).format('YYYY-MM-DD');
+	console.log("DateMy: "+datemy);
+	var timemy = moment(msg.timemy).format('HH-MM');
 
-		var queryParam = {
-				idperson : msg.idperson,
-				start_date : formDate,
-				end_date : toDate,
-				idclient : msg.idclient
-		}
+	 var queryParam = {
+		      idbuilding : msg.idbuilding,
+		      severity : msg.severity,
+		      datemy : datemy,
+		      idguard : msg.idguard,
+		      status : 'F',
+		      seenByClient : 'F',
+		      description : msg.description,
+		      time : timemy
+		    };
+		    mysql
+		        .queryDb(
+		            'SELECT idreport FROM wfms.report where ?? = ?',
+		            [ 'date',datemy],
+		            function(err,resultIdReport) {
+		              if (err) {
+		                console.log("Error while perfoming query  !!!");
+		                callback({
+		                  status : 500,
+		                  message : "Please try again later"
+		                });
+		              } else {
+		            	  console.log("resultIdReport"+ resultIdReport);
+		                if (resultIdReport.length==0) {
+		                  console.log(" first idreport "
+		                      + resultIdReport);
+		                  var queryParam = {
+		                    idbuilding : msg.idbuilding,
+		                    date : datemy,
+		                    idguard : msg.idguard
 
-		mysql.queryDb("INSERT INTO client SET ?", queryParam, function(err, response) {
-			if (err) {
-				console.log("Error while perfoming query !!!");
-				callback({ status : 500, message : "Please try again later" });
-			} else {
-				callback({ status : 200, message : "Client has been added Succesfully" });
-			}
-		});
+		                  };
+		                  mysql
+		                      .queryDb(
+		                          "INSERT INTO `wfms`.`report` SET ?",
+		                          queryParam,
+		                          function(err, result) {
+		                            if (err) {
+		                              console
+		                                  .log("Error while perfoming query !!!");
+		                              callback(
+		                                      {
+		                                        status : 500,
+		                                        message : "Please try again later"
+		                                      });
+		                            } else {
+		                            	console.log(result);
+		                              var reportId = result.insertId;
+		                              console.log("reportid on line 62:"+reportId);
+
+		                              var data = {
+		                                idbuilding : msg.idbuilding,
+		                                idreport : reportId,
+		                                severity : msg.severity,
+		                                date : datemy,
+		                                idguard : msg.idguard,
+		                                status : 'F',
+		                                seenByClient : 'F',
+		                                description : msg.description,
+		                                time : timemy
+		                              }
+		                              mysql
+		                                  .queryDb(
+		                                      "INSERT INTO `wfms`.`alertinfo` SET ?",
+		                                      data,
+		                                      function(
+		                                          err,
+		                                          rest) {
+		                                        if (err) {
+		                                          console
+		                                              .log("Error while perfoming query- cant insert t alertinfo !!!");
+		                                          callback(
+		                                                  {
+		                                                    status : 500,
+		                                                    message : "Please try again later"
+		                                                  });
+		                                        } else {
+
+		                                         callback(
+		                                                  {
+		                                                    status : 200,
+		                                                    message : "Alert successfully inserted",
+		                                                    resultPatrol : rest
+		                                                  });
+		                                        }
+		                                      });
+
+		                            }
+		                          });
+		                }
+
+		                else {
+		                  //console.log("idreport " + resultIdReport[0].idreport);
+		                  var data2 = {
+		                    idbuilding : msg.idbuilding,
+		                    idguard : msg.idguard,
+		                    date : datemy
+
+		                  }
+		                  mysql
+		                      .queryDb(
+		                          "INSERT INTO `wfms`.`report` SET ?",
+		                          data2,
+		                          function(err, resultAlert) {
+		                            if (err) {
+		                              console
+		                                  .log("Error while perfoming query !!!");
+		                             callback(
+		                                      {
+		                                        status : 500,
+		                                        message : "Please try again later"
+		                                      });
+		                            } else {
+		                              console
+		                                  .log("idreport "
+		                                      + resultIdReport[0].idreport);
+		                              var data3 = {
+		                                idbuilding : msg.idbuilding,
+		                                idreport : resultIdReport[0].idreport,
+		                                severity : msg.severity,
+		                                date : datemy,
+		                                idguard : msg.idguard,
+		                                status : 'F',
+		                                seenByClient : 'F',
+		                                description : msg.description,
+		                                time : timemy
+		                              }
+		                              mysql
+		                                  .queryDb(
+		                                      "INSERT INTO `wfms`.`alertinfo` SET ?",
+		                                      data3,
+		                                      function(
+		                                          err,
+		                                          resultAlert) {
+		                                        if (err) {
+		                                          console
+		                                              .log("Error while perfoming query !!!");
+		                                         callback(
+		                                                  {
+		                                                    status : 500,
+		                                                    message : "Please try again later"
+		                                                  });
+		                                        } else {
+
+		                                         callback(
+		                                                  {
+		                                                    status : 200,
+		                                                    message : "Alert insertedSuccefully",
+		                                                    resultAlert : resultAlert
+		                                                  });
+		                                        }
+		                                      });
+
+		                            }
+		                            ;
+
+		                          });
+
+		                }
+		                
+		              };
+		              
+		            });
 }
+
+function alertPerBuilding(msg,callback){
+	var idbuilding=msg.idbuilding
+	mysql.queryDb('SELECT wfms.alertinfo.severity, wfms.alertinfo.date, wfms.alertinfo.idalertInfo FROM wfms.alertinfo where ?? = ?;',['idbuilding',idbuilding],function(err,resultAlert){
+		if (err) {
+			res.status(500).json({ status : 500, message : "Error while retrieving data" });
+		} else {
+			res.status(200).json({ status : 200, resultAlert:resultAlert });
+		}
+	});
+}
+
+function alertPerClient(msg,callback){
+	var idclient=msg.idclient;
+	var seenByClient=msg.seenByClient;
+	var seenByClient = msg.seenByClient;
+	mysql.queryDb('SELECT * FROM wfms.alertinfo left outer join wfms.building on ?? = ?? where ?? = ? AND ?? = ?;',['wfms.building.idbuilding','wfms.alertinfo.idbuilding','idclient',idclient,'seenByClient',seenByClient],function(err,resultAlert){
+
+		if (err) {
+			res.status(500).json({ status : 500, message : "Error while retrieving data" });
+		} else {
+			res.status(200).json({ status : 200, message : "Report for Alert", resultAlert:resultAlert});
+		}
+	});
+}
+
+function seenByClient(msg,callback){
+	var idclient=msg.idclient;
+	var seenByClient=msg.seenByClient;
+	mysql.queryDb('SELECT * FROM wfms.alertinfo left outer join wfms.building on ?? = ?? where ?? = ? AND ?? = ?;',['wfms.building.idbuilding','wfms.alertinfo.idbuilding','idclient',idclient,'seenByClient',seenByClient],function(err,resultAlert){
+
+		if (err) {
+			res.status(500).json({ status : 500, message : "Error while retrieving data" });
+		} else {
+			res.status(200).json({ status : 200, message : "Report for Alert", resultAlert:resultAlert});
+		}
+	});
+}	
+
+function alertPerDay(msg,callback){
+	var Date = moment(msg.date,'DD-MM-YYYY').toDate();
+
+	mysql.queryDb("SELECT * FROM wfms.alertinfo where ?? LIKE '"+date+"%'",[Date], function(err, resultAlert) {
+		if (err) {
+			console.log("Error while perfoming query !!!");
+			res.status(500).json({ status : 500, message : "Please try again later" });
+		} else {
+			
+			res.status(200).json({ status : 200, message : "Report for Patrol", resultAlert:resultAlert});
+		}
+	});
+}
+function seenByAdmin(msg,callback){
+
+	var status=msg.status;
+	var idalertInfo=msg.idalertInfo;
+	mysql.queryDb('UPDATE `wfms`.`alertinfo` SET ??= ? WHERE ?? = ?;',['status',status,'idalertInfo',idalertInfo],function(err,result){
+
+		if (err) {
+			res.status(500).json({ status : 500, message : "Error while retrieving data" });
+		} else {
+			res.status(200).json({ status : 200, message : "Alert Updated", result:result});
+		}
+	});
+}
+
+
+
 
 // Save updateClientBillingInfo
-function updateClientBillingInfo(msg,callback){
-	mysql.queryDb("select (abs(DATEDIFF(building.release_date,building.start_date)))*building.no_of_guards*10 AS Amount_Due, building.idbuilding, building.no_of_guards, building.start_date, building.buildingname, building.release_date from wfms.building inner join wfms.client on building.idclient = client.idclient where ?? = ? AND ?? = 'Active';",['building.idclient',msg.idclient,'building.buildingstatus'],function(err,rows){
-		if (err) {
-			callback({ status : 500, message : "Error while retrieving data" });
-		} else {
-			callback({ status : 200, message : "Value is coming",result:rows });
-		}
-	});
-}
-
-//Update Client
-function updateClient(msg,callback){
-	var newParam ={
-			start_date : moment(msg.start_date,'DD-MM-YYYY').toDate(),
-			end_date : moment(msg.end_date,'DD-MM-YYYY').toDate()
-	};
-	mysql.queryDb("UPDATE client SET ? WHERE ?? = ?", 
-		[newParam,'idperson',msg.idperson], 
-		function(err, response) {
-		if (err) {
-			console.log("Error while perfoming query !!!" + err);
-			callback({ status : 500, message : "Please try again later" });
-		} else {
-			callback({ status : 200, message : "Client has been updated Succesfully" });
-		}
-	});
-}
-
-/// get client
-function getClient(msg,callback){
-	mysql.queryDb('SELECT * FROM client WHERE ?',[{idperson:msg.idperson}],function(err,rows){
-		if (err) {
-			callback({ status : 500, message : "Error while retrieving data" });
-		} else {
-			callback({ status : 200, data : rows });
-		}
-	});
-}
-
-// Delete client
-function deleteClient(msg,callback){
-	var idperson = msg.idperson,
-	idclient = msg.idclient,
-	start_date = msg.start_date,
-	end_date = msg.end_date;
-
-	mysql.queryDb('DELETE FROM client WHERE ?',[{idperson:idperson}],function(err,response){
-		if (err) {
-			console.log("Error while deleting client details !!!" + err);
-			callback({ status : 500, message : "Error while deleting client details !!!" });
-		} else {
-			callback({ status : 200, message : "Client details has been deleted Succesfully" });
-		}
-	});
-}
-
-//list all clients
-function listAllClients(msg,callback){
-	mysql.queryDb('SELECT * FROM client left join person on client.idperson = person.idperson',function(err,rows){
-		if (err) {
-			console.log("Error while listing all the client details !!!"  + err);
-			callback({ status : 500, message : "Error while listing client details !!!" });
-		} else {
-			callback({ status : 200, data : rows});
-		}
-	});
-}

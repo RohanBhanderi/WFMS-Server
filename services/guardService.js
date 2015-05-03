@@ -1,3 +1,7 @@
+
+
+
+
 'use strict';
 
 var mysql = require('../util/mysql'), 
@@ -6,9 +10,9 @@ var mysql = require('../util/mysql'),
 var crypto = require('crypto');
 
 
-exports.handle_request = function(req,callback){
-	var operation = req.operation;
-	var message = req.message;
+exports.handle_request = function(msg,callback){
+	var operation = msg.operation;
+	var message = msg.message;
 	
 	switch(operation){
 		
@@ -38,6 +42,22 @@ exports.handle_request = function(req,callback){
 		case "searchGuard" :
 			searchGuard(message,callback);
 			break;
+			
+		case "getGuardSchedule" :
+			getGuardSchedule(message,callback);
+			break;
+			
+		case "addPatrol" :
+			console.log("Add patrol record");
+			addPatrolRecord(message,callback);
+			break;
+			
+		case "getGuardInfo" :
+			
+			getGuardInfo(message,callback);
+			break;
+			
+			
 			
 	
 			
@@ -211,13 +231,66 @@ function deleteGuard(msg,callback){
 }
 
 
-
 /// get guard
+
 function getGuard(msg,callback){
+
+
+
+idguard = msg.idguard,
+
+mysql.queryDb('SELECT * FROM guard WHERE ?',[{idguard:idguard}],function(err,rows){
+
+
+
+if (err) {
+
+callback({ status : 500, message : "Error while retrieving data" });
+
+} else {
+
+callback({ status : 200, data : rows });
+
+}
+
+});
+
+
+/*
+
+mysql.queryDb('SELECT * FROM client WHERE ?',[{idperson:msg.idperson}],function(err,rows){
+
+if (err) {
+
+callback({ status : 500, message : "Error while retrieving data" });
+
+} else {
+
+callback({ status : 200, data : rows });
+
+}
+
+});
+
+*/
+
+}
+
+
+
+
+/// get guard Info
+function getGuardInfo(msg,callback){
 	
+	console.log("Here  in getGuardInfo");
+	//idguard = msg.idguard;
+	var idperson = msg.idperson;
 	
-	idguard = msg.idguard,
-	mysql.queryDb('SELECT * FROM guard WHERE ?',[{idguard:idguard}],function(err,rows){
+	console.log('id'+idperson);
+	/*callback({ status : 200, data : "Success" });*/
+	
+	mysql.queryDb('SELECT * FROM guard g JOIN person p on g.idperson = p.idperson where p.idperson =? ;',[idperson],function(err,rows){
+	//mysql.queryDb('SELECT * FROM guard WHERE ?',[{idguard:idguard}],function(err,rows){
 
 		if (err) {
 			callback({ status : 500, message : "Error while retrieving data" });
@@ -226,7 +299,7 @@ function getGuard(msg,callback){
 		}
 	});
 	
-	/*
+	
 	mysql.queryDb('SELECT * FROM client WHERE ?',[{idperson:msg.idperson}],function(err,rows){
 		if (err) {
 			callback({ status : 500, message : "Error while retrieving data" });
@@ -234,7 +307,7 @@ function getGuard(msg,callback){
 			callback({ status : 200, data : rows });
 		}
 	});
-	*/
+	
 }
 
 
@@ -254,6 +327,225 @@ function searchGuard(msg,callback){
 
 }
 
+function addPatrolRecord(msg,callback){
+
+		var datemy = moment(msg.datemy).format('YYYY-MM-DD');
+		var timemy = moment(msg.timemy).format('HH-MM');
+		
+		
+
+		 var queryParam = {
+			      idbuilding : msg.idbuilding,
+			      datemy : datemy,
+			      idguard : msg.idguard,
+			      description : msg.description,
+			      time : timemy
+			    };
+			    mysql
+			        .queryDb(
+			            'SELECT idreport FROM wfms.report where ?? = ?',
+			            [ 'date',datemy],
+			            function(err,resultIdReport) {
+			              if (err) {
+			                console.log("Error while perfoming query  !!!");
+			                callback({
+			                  status : 500,
+			                  message : "Please try again later"
+			                });
+			              } else {
+			            	  console.log("resultIdReport"+ resultIdReport);
+			                if (resultIdReport.length==0) {
+			                  console.log(" first idreport "
+			                      + resultIdReport);
+			                  var queryParam = {
+			                    idbuilding : msg.idbuilding,
+			                    date : datemy,
+			                    idguard : msg.idguard
+
+			                  };
+			                  mysql
+			                      .queryDb(
+			                          "INSERT INTO `wfms`.`report` SET ?",
+			                          queryParam,
+			                          function(err, result) {
+			                            if (err) {
+			                              console
+			                                  .log("Error while perfoming query !!!");
+			                              callback(
+			                                      {
+			                                        status : 500,
+			                                        message : "Please try again later"
+			                                      });
+			                            } else {
+			                            	console.log(result);
+			                              var reportId = result.insertId;
+			                              console.log("reportid on line 62:"+reportId);
+
+			                              var data = {
+			                                idbuilding : msg.idbuilding,
+			                                idreport : reportId,
+			                                date : datemy,
+			                                idguard : msg.idguard,
+			                                description : msg.description,
+			                                time : timemy
+			                              }
+			                              mysql
+			                                  .queryDb(
+			                                      "INSERT INTO `wfms`.`patrol` SET ?",
+			                                      data,
+			                                      function(
+			                                          err,
+			                                          rest) {
+			                                        if (err) {
+			                                          console
+			                                              .log("Error while perfoming query- cant insert t patrol !!!");
+			                                          callback(
+			                                                  {
+			                                                    status : 500,
+			                                                    message : "Please try again later"
+			                                                  });
+			                                        } else {
+
+			                                        	callback(
+			                                                  {
+			                                                    status : 200,
+			                                                    message : "Alert successfully inserted",
+			                                                    resultPatrol : rest
+			                                                  });
+			                                        }
+			                                      });
+
+			                            }
+			                          });
+			                }
+			                else {
+				                  //console.log("idreport " + resultIdReport[0].idreport);
+				                  var data2 = {
+				                    idbuilding : msg.idbuilding,
+				                    idguard : msg.idguard,
+				                    date : datemy
+
+				                  }
+				                  mysql
+				                      .queryDb(
+				                          "INSERT INTO `wfms`.`report` SET ?",
+				                          data2,
+				                          function(err, resultPatrol) {
+				                            if (err) {
+				                              console
+				                                  .log("Error while perfoming query !!!");
+				                              callback(
+				                                      {
+				                                        status : 500,
+				                                        message : "Please try again later"
+				                                      });
+				                            } else {
+				                              console
+				                                  .log("idreport "
+				                                      + resultIdReport[0].idreport);
+				                              var data3 = {
+				                                idbuilding : msg.idbuilding,
+				                                idreport : resultIdReport[0].idreport,
+				                                date : datemy,
+				                                idguard : msg.idguard,
+				                                description : msg.description,
+				                                time : timemy
+				                              }
+				                              mysql
+				                                  .queryDb(
+				                                      "INSERT INTO `wfms`.`alertinfo` SET ?",
+				                                      data3,
+				                                      function(
+				                                          err,
+				                                          resultPatrol) {
+				                                        if (err) {
+				                                          console
+				                                              .log("Error while perfoming query !!!");
+				                                          callback(
+				                                                  {
+				                                                    status : 500,
+				                                                    message : "Please try again later"
+				                                                  });
+				                                        } else {
+
+				                                        	callback(
+				                                                  {
+				                                                    status : 200,
+				                                                    message : "Patrol insertedSuccefully",
+				                                                    resultPatrol : resultPatrol
+				                                                  });
+				                                        }
+				                                      });
+
+				                            }
+				                            ;
+
+				                          });
+
+				                }
+				                
+				              };
+				              
+				            });
+		}
 
 
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	///////////////////
+	/*var patrolDate = moment(msg.date,'YYYY-MM-DD').toDate();
+	var time =moment(msg.time, 'HH-MM-SS').toTime();
+	console.log("inside patrol add srevice");
+	var queryParam = {
+			
+			date    : patrolDate,
+			description : msg.description,
+			idguard   : msg.idguard,
+			idbuilding : msg.idbuilding,
+			idreport : msg.idreport,
+			time : msg.time
+			
+	};
+	mysql.queryDb("INSERT INTO patrol SET ?", queryParam, function(err, response) {
+		if (err) {
+			console.log("Error while perfoming query !!!");
+			callback({ status : 500, message : "Please try again later" });
+		} else {
+			callback({ status : 200, message : "Patrol record has been added Succesfully" });
+		}
+	});
+}
+*/
 
+function getGuardSchedule(msg, callback){
+
+	var	 idguard = msg.idguard;
+	
+//idguard = req.msg.idguard;
+mysql.queryDb('select b.buildingname,b.idbuilding,g.from, g.to, b.address from gaurdbuildingschedule g JOIN building b on g.idbuilding=b.idbuilding where ?',[{idguard:idguard}],function(err,rows){
+	if (err) {
+		console.log("Error while fetchung Guard Schedule!!!"  + err);
+		callback({ status : 500, message : "Error while listing guard schedule !!!" });
+	} else {
+		callback({ status : 200, data : rows});
+	}
+});
+
+};
