@@ -107,7 +107,7 @@ function editBuilding(msg,callback){
 
 // delete client
 function deleteBuilding(msg,callback){
-	var buildingid = req.params.buildingid;
+	//var buildingid = req.params.buildingid;
 	var newParam = {
 		buildingstatus : "Disable"
 	};
