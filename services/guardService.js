@@ -1,7 +1,3 @@
-
-
-
-
 'use strict';
 
 var mysql = require('../util/mysql'), 
@@ -43,7 +39,7 @@ exports.handle_request = function(msg,callback){
 			searchGuard(message,callback);
 			break;
 			
-<<<<<<< HEAD
+
 		case "getGuardSchedule" :
 			getGuardSchedule(message,callback);
 			break;
@@ -58,16 +54,9 @@ exports.handle_request = function(msg,callback){
 			getGuardInfo(message,callback);
 			break;
 			
-			
-			
-	
-			
-	//	default : 
-	//		callback({status : 400,message : "Bad Request"});
-=======
 		default : 
 			callback({status : 400,message : "Bad Request"});
->>>>>>> c7e6368df6bdb695bc83f2eade9fc56d8c38df14
+
 	}
 };
 
