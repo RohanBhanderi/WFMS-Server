@@ -38,7 +38,7 @@ exports.handle_request = function(msg,callback){
 		case "searchGuard" :
 			searchGuard(message,callback);
 			break;
-			
+
 
 		case "getGuardSchedule" :
 			getGuardSchedule(message,callback);
@@ -53,9 +53,7 @@ exports.handle_request = function(msg,callback){
 			
 			getGuardInfo(message,callback);
 			break;
-			
-		default : 
-			callback({status : 400,message : "Bad Request"});
+
 
 	}
 };
@@ -110,6 +108,7 @@ function createGuard(msg,callback){
           } else {
         	  		var queryParam = {
       				idperson :	idperson,
+      				idguard:msg.idguard,
       				start_date : msg.start_date,
       				end_date : msg.end_date,
       				weekly_working_set : msg.weekly_working_set,
@@ -324,8 +323,8 @@ function searchGuard(msg,callback){
 function addPatrolRecord(msg,callback){
 
 		var datemy = moment(msg.datemy).format('YYYY-MM-DD');
-		var timemy = moment(msg.timemy).format('HH-MM');
-		
+		var timemy = moment(msg.timemy).format('HH-MM-SS');
+		console.log(datemy+"date");
 		
 
 		 var queryParam = {
@@ -447,7 +446,7 @@ function addPatrolRecord(msg,callback){
 				                              }
 				                              mysql
 				                                  .queryDb(
-				                                      "INSERT INTO `wfms`.`alertinfo` SET ?",
+				                                      "INSERT INTO `wfms`.`patrol` SET ?",
 				                                      data3,
 				                                      function(
 				                                          err,
