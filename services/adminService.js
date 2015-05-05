@@ -1,8 +1,7 @@
 'use strict';
-
-var mysql = require('../util/mysql'), 
-	moment = require('moment'),
-	dateutil = require('../util/dateutil');
+var mysql = require('../util/mysql');
+var moment = require('moment');
+var dateutil = require('../util/dateutil');
 
 exports.handle_request = function(req,callback){
 	var operation = req.operation;
@@ -175,9 +174,9 @@ function assignGuards(msg,callback){
 	var guardDtls = msg.guardDtls;
 	guardDtls.forEach(function(guard){
 
-			var queryParam = {
+			var queryParam = {	
 					from : dateutil.now(),
-					to    : msg.end_date,
+					to    : moment(msg.end_date).toDate(),
 					idbuilding : msg.idbuilding,
 					idguard : guard.idguard
 			}
