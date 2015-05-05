@@ -10,6 +10,14 @@ exports.handle_request = function(req,callback){
 
 	switch(operation){
 
+		case "reportDataPerClientClient":
+		reportDataPerClientClient(message,callback);
+		break;
+
+		case "reportDataPerClient":
+		reportDataPerClient(message,callback);
+		break;
+
 		case "createReport" : 
 		createReport(message,callback);
 		break;
@@ -47,7 +55,40 @@ exports.handle_request = function(req,callback){
 	}
 };
 
+function reportDataPerClientClient(msg,callback){
+mysql.queryDb("select r.idreport as idreport, c.idclient as idclient, r.date as date, r.idbuilding as idbuilding, r.idguard as idguard, b.buildingname as buildingname, p.fname as clientfirst, p.lname as clientlast, m.fname as guardfirst, m.lname as guardlast from report r left outer join building b on r.idbuilding = b.idbuilding left outer join client c on c.idclient = b.idclient left outer join person p on c.idperson = p.idperson  left outer join guard g on r.idguard =g.idguard left outer join person m on m.idperson = g.idperson where c.idclient = ?",[msg.idclient], function(err, resultReport){
 
+		if (err) {
+
+			console.log("Error while perfoming query !!!");
+
+			callback({ status : 500, message : "Please try again later" });
+
+		} else {
+
+			callback({ status : 200, message : "Data per client", result:resultReport});
+		}
+	});
+
+};
+
+function reportDataPerClient(msg,callback){
+
+	mysql.queryDb("select r.idreport as idreport, c.idclient as idclient, r.date as date, r.idbuilding as idbuilding, r.idguard as idguard, b.buildingname as buildingname, p.fname as clientfirst, p.lname as clientlast, m.fname as guardfirst, m.lname as guardlast from report r left outer join building b on r.idbuilding = b.idbuilding left outer join client c on c.idclient = b.idclient left outer join person p on c.idperson = p.idperson  left outer join guard g on r.idguard =g.idguard left outer join person m on m.idperson = g.idperson", function(err, resultReport){
+
+		if (err) {
+
+			console.log("Error while perfoming query !!!");
+
+			callback({ status : 500, message : "Please try again later" });
+
+		} else {
+
+			callback({ status : 200, message : "Data per client", result:resultReport});
+		}
+	});
+
+};
 function alertByidalertInfo(msg,callback){
 
 	mysql.queryDb("SELECT * FROM wfms.alertinfo where ?? = ?",['idalertInfo',msg.idalertInfo], function(err, resultAlert){
