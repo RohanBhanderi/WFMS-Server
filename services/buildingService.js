@@ -47,7 +47,9 @@ function createBuilding(msg,callback){
 			address : msg.address,
 			checkpoint : msg.checkpoint,
 			no_of_guards: msg.no_of_guards,
-			buildingstatus:"Active"
+			buildingstatus:"Active",
+			latitude : msg.latitude,
+			longitude : msg.longitude
 	}
 
 	mysql.queryDb("INSERT INTO building SET ?", queryParam, function(err, response) {
@@ -62,7 +64,7 @@ function createBuilding(msg,callback){
 
 //Get Building Client Report
 function getBuildingClientReport(msg,callback){
-	mysql.queryDb('SELECT buildingname FROM building WHERE ? and buildingstatus = "Active"',[{idclient:msg.idperson}],function(err,rows){
+	mysql.queryDb('SELECT buildingname, latitude, longitude FROM building WHERE ? and buildingstatus = "Active"',[{idclient:msg.idperson}],function(err,rows){
 		if (err) {
 			callback({ status : 500, message : "Error while retrieving data" });
 		} else {
@@ -91,6 +93,8 @@ function editBuilding(msg,callback){
 		address : msg.address,
 		checkpoint : msg.checkpoint,
 		no_of_guards: msg.no_of_guards,
+		latitude : msg.latitude,
+		longitude : msg.longitude
 	};
 
 	mysql.queryDb("UPDATE building SET ? WHERE ?? = ?", 
@@ -107,7 +111,7 @@ function editBuilding(msg,callback){
 
 // delete client
 function deleteBuilding(msg,callback){
-	var buildingid = req.params.buildingid;
+	//var buildingid = req.params.buildingid;
 	var newParam = {
 		buildingstatus : "Disable"
 	};

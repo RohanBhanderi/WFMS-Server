@@ -109,6 +109,7 @@ function createGuard(msg,callback){
            callback({ status : 500, message : "Please try again later" });
           } else {
         	  		var queryParam = {
+        	  		
       				idperson :	idperson,
       				idguard:msg.idguard,
       				start_date : msg.start_date,
@@ -326,7 +327,7 @@ function searchGuard(msg,callback){
 function addPatrolRecord(msg,callback){
 
 		var datemy = moment(msg.datemy).format('YYYY-MM-DD');
-		var timemy = moment(msg.timemy).format('HH-MM-SS');
+		//var timemy = moment(msg.timemy).format('HH');
 		console.log(datemy+"date");
 		
 
@@ -335,7 +336,7 @@ function addPatrolRecord(msg,callback){
 			      datemy : datemy,
 			      idguard : msg.idguard,
 			      description : msg.description,
-			      time : timemy
+			      time : msg.timemy
 			    };
 			    mysql
 			        .queryDb(
@@ -383,7 +384,7 @@ function addPatrolRecord(msg,callback){
 			                                date : datemy,
 			                                idguard : msg.idguard,
 			                                description : msg.description,
-			                                time : timemy
+			                                time : msg.timemy
 			                              }
 			                              mysql
 			                                  .queryDb(
@@ -445,7 +446,7 @@ function addPatrolRecord(msg,callback){
 				                                date : datemy,
 				                                idguard : msg.idguard,
 				                                description : msg.description,
-				                                time : timemy
+				                                time : msg.timemy
 				                              }
 				                              mysql
 				                                  .queryDb(

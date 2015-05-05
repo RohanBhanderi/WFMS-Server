@@ -138,8 +138,11 @@ function listAllClients(msg,callback){
 
 
 //getClientInfo
+/*
 function getClientInfo(msg,callback){
-	mysql.queryDb('SELECT * FROM person WHERE ?',[{idperson:msg.idperson}],function(err,rows){
+	mysql.queryDb('SELECT * FROM client left join person on client.idperson = person.idperson where person.idperson=?',[msg.idperson],function(err,rows){
+	
+	//mysql.queryDb('SELECT * FROM person WHERE ?',[{idperson:msg.idperson}],function(err,rows){
 		if (err) {
 			console.log("Error while listing all the client details !!!"  + err);
 			callback({ status : 500, message : "Error while listing client details !!!" });
@@ -147,4 +150,18 @@ function getClientInfo(msg,callback){
 			callback({ status : 200, data : rows});
 		}
 	});
+}*/
+
+//getClientInfo
+function getClientInfo(msg,callback){
+	
+	
+mysql.queryDb('SELECT * FROM client left join person on client.idperson = person.idperson where person.idperson=?',[msg.idperson],function(err,rows){
+if (err) {
+console.log("Error while listing all the client details !!!"  + err);
+callback({ status : 500, message : "Error while listing client details !!!" });
+} else {
+callback({ status : 200, data : rows});
+}
+});
 }
