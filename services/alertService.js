@@ -213,42 +213,76 @@ function createAlert(msg,callback){
 
 function alertPerBuilding(msg,callback){
 	var idbuilding=msg.idbuilding
-	mysql.queryDb('SELECT wfms.alertinfo.severity, wfms.alertinfo.date, wfms.alertinfo.idalertInfo FROM wfms.alertinfo where ?? = ?;',['idbuilding',idbuilding],function(err,resultAlert){
-		if (err) {
-			res.status(500).json({ status : 500, message : "Error while retrieving data" });
-		} else {
-			res.status(200).json({ status : 200, resultAlert:resultAlert });
-		}
-	});
+	 mysql
+     .queryDb(
+         'SELECT wfms.alertinfo.severity, wfms.alertinfo.date, wfms.alertinfo.idalertInfo FROM wfms.alertinfo where ?? = ?;',
+         [ 'idbuilding', req.params.idbuilding ], function(err,
+             resultAlert) {
+           if (err) {
+             callback({
+               status : 500,
+               message : "Error while retrieving data"
+             });
+           } else {
+        	   callback({
+               status : 200,
+               resultAlert : resultAlert
+             });
+           }
+         });
 }
 
 function alertPerClient(msg,callback){
 	var idclient=msg.idclient;
 	var seenByClient=msg.seenByClient;
 	var seenByClient = msg.seenByClient;
-	mysql.queryDb('SELECT * FROM wfms.alertinfo left outer join wfms.building on ?? = ?? where ?? = ? AND ?? = ?;',['wfms.building.idbuilding','wfms.alertinfo.idbuilding','idclient',idclient,'seenByClient',seenByClient],function(err,resultAlert){
+	mysql
+    .queryDb(
+        'SELECT * FROM wfms.alertinfo left outer join wfms.building on ?? = ?? where ?? = ? AND ?? = ?;',
+        [ 'wfms.building.idbuilding',
+            'wfms.alertinfo.idbuilding', 'idclient',
+            req.params.idclient, 'seenByClient', 'F' ],
+        function(err, resultAlert) {
 
-		if (err) {
-			res.status(500).json({ status : 500, message : "Error while retrieving data" });
-		} else {
-			res.status(200).json({ status : 200, message : "Report for Alert", resultAlert:resultAlert});
-		}
-	});
+          if (err) {
+            callback({
+              status : 500,
+              message : "Error while retrieving data"
+            });
+          } else {
+        	  callback({
+              status : 200,
+              message : "Report for Alert",
+              resultAlert : resultAlert
+            });
+          }
+        });
 }
+
 
 function seenByClient(msg,callback){
 	var idclient=msg.idclient;
 	var seenByClient=msg.seenByClient;
-	mysql.queryDb('SELECT * FROM wfms.alertinfo left outer join wfms.building on ?? = ?? where ?? = ? AND ?? = ?;',['wfms.building.idbuilding','wfms.alertinfo.idbuilding','idclient',idclient,'seenByClient',seenByClient],function(err,resultAlert){
+	mysql.queryDb('UPDATE `wfms`.`alertinfo` SET ??= ? WHERE ?? = ?;', [
+	                                                                    'seenByClient', req.body.seenByClient, 'idalertInfo',
+	                                                                    req.body.idalertInfo ], function(err, result) {
 
-		if (err) {
-			res.status(500).json({ status : 500, message : "Error while retrieving data" });
-		} else {
-			res.status(200).json({ status : 200, message : "Report for Alert", resultAlert:resultAlert});
-		}
-	});
-}	
+	                                                                  if (err) {
+	                                                                    callback({
+	                                                                      status : 500,
+	                                                                      message : "Error while retrieving data"
+	                                                                    });
+	                                                                  } else {
+	                                                                	  callback({
+	                                                                      status : 200,
+	                                                                      message : "Alert Updated",
+	                                                                      result : result
+	                                                                    });
+	                                                                  }
+	                                                                });
+	                                                              }
 
+	                                                           
 function alertPerDay(msg,callback){
 	var Date = moment(msg.date,'DD-MM-YYYY').toDate();
 
