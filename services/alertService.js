@@ -33,6 +33,13 @@ exports.handle_request = function(msg,callback){
 		case "listAllClients" :
 			listAllClients(message,callback);
 			break;
+
+		case "alertPerClient":
+			alertPerClient(message,callback);
+			break;
+		case "seenByClient":
+			seenByClient(message,callback);
+			break;
 			
 		default : 
 			callback({status : 400,message : "Bad Request"});
@@ -215,9 +222,9 @@ function alertPerBuilding(msg,callback){
 	var idbuilding=msg.idbuilding
 	mysql.queryDb('SELECT wfms.alertinfo.severity, wfms.alertinfo.date, wfms.alertinfo.idalertInfo FROM wfms.alertinfo where ?? = ?;',['idbuilding',idbuilding],function(err,resultAlert){
 		if (err) {
-			res.status(500).json({ status : 500, message : "Error while retrieving data" });
+			 callback({ status : 500, message : "Error while retrieving data" });
 		} else {
-			res.status(200).json({ status : 200, resultAlert:resultAlert });
+			 callback({ status : 200, resultAlert:resultAlert });
 		}
 	});
 }
@@ -225,26 +232,27 @@ function alertPerBuilding(msg,callback){
 function alertPerClient(msg,callback){
 	var idclient=msg.idclient;
 	var seenByClient=msg.seenByClient;
-	var seenByClient = msg.seenByClient;
+	
 	mysql.queryDb('SELECT * FROM wfms.alertinfo left outer join wfms.building on ?? = ?? where ?? = ? AND ?? = ?;',['wfms.building.idbuilding','wfms.alertinfo.idbuilding','idclient',idclient,'seenByClient',seenByClient],function(err,resultAlert){
 
 		if (err) {
-			res.status(500).json({ status : 500, message : "Error while retrieving data" });
+			 callback({ status : 500, message : "Error while retrieving data" });
 		} else {
-			res.status(200).json({ status : 200, message : "Report for Alert", resultAlert:resultAlert});
+			 callback({ status : 200, message : "Report for Alert", resultAlert:resultAlert});
 		}
 	});
 }
 
 function seenByClient(msg,callback){
-	var idclient=msg.idclient;
+	
 	var seenByClient=msg.seenByClient;
-	mysql.queryDb('SELECT * FROM wfms.alertinfo left outer join wfms.building on ?? = ?? where ?? = ? AND ?? = ?;',['wfms.building.idbuilding','wfms.alertinfo.idbuilding','idclient',idclient,'seenByClient',seenByClient],function(err,resultAlert){
+	var idalertInfo = msg.idalertInfo;
+	mysql.queryDb('UPDATE `wfms`.`alertinfo` SET ??= ? WHERE ?? = ?;',['seenByClient',seenByClient,'idalertInfo',idalertInfo],function(err,resultAlert){
 
 		if (err) {
-			res.status(500).json({ status : 500, message : "Error while retrieving data" });
+			 callback({ status : 500, message : "Error while retrieving data" });
 		} else {
-			res.status(200).json({ status : 200, message : "Report for Alert", resultAlert:resultAlert});
+			 callback({ status : 200, message : "Report for Alert", resultAlert:resultAlert});
 		}
 	});
 }	
@@ -255,10 +263,10 @@ function alertPerDay(msg,callback){
 	mysql.queryDb("SELECT * FROM wfms.alertinfo where ?? LIKE '"+date+"%'",[Date], function(err, resultAlert) {
 		if (err) {
 			console.log("Error while perfoming query !!!");
-			res.status(500).json({ status : 500, message : "Please try again later" });
+			 callback({ status : 500, message : "Please try again later" });
 		} else {
 			
-			res.status(200).json({ status : 200, message : "Report for Patrol", resultAlert:resultAlert});
+			 callback({ status : 200, message : "Report for Patrol", resultAlert:resultAlert});
 		}
 	});
 }
@@ -269,9 +277,9 @@ function seenByAdmin(msg,callback){
 	mysql.queryDb('UPDATE `wfms`.`alertinfo` SET ??= ? WHERE ?? = ?;',['status',status,'idalertInfo',idalertInfo],function(err,result){
 
 		if (err) {
-			res.status(500).json({ status : 500, message : "Error while retrieving data" });
+			 callback({ status : 500, message : "Error while retrieving data" });
 		} else {
-			res.status(200).json({ status : 200, message : "Alert Updated", result:result});
+			 callback({ status : 200, message : "Alert Updated", result:result});
 		}
 	});
 }
