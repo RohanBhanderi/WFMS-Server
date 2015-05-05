@@ -93,6 +93,7 @@ function createGuard(msg,callback){
            callback({ status : 500, message : "Please try again later" });
           } else {
         	  		var queryParam = {
+        	  		
       				idperson :	idperson,
       				start_date : msg.start_date,
       				end_date : msg.end_date,
