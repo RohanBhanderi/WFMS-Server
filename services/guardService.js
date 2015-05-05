@@ -69,6 +69,7 @@ function createGuard(msg,callback){
     var usertype = msg.usertype;
     var address = msg.address;
     var city = msg.city;
+    var state = msg.state;
     var zipcode = msg.zipcode;
     var phonenumber = msg.phonenumber;
      
@@ -99,6 +100,7 @@ function createGuard(msg,callback){
                   email : un,
                   address: address,
                   city:city,
+                  state:state,
                   zipcode:zipcode,
                   phonenumber:phonenumber
                   },
@@ -164,6 +166,7 @@ function updateGuard(msg,callback){
 					lname: msg.body.lname,
 					address: msg.body.address,
 					city: msg.body.city,
+					state: msg.body.state,
 					zipcode: msg.body.zipcode,
 					email: msg.body.email,
 					phonenumber: msg.body.phonenumber,
