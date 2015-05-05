@@ -108,6 +108,7 @@ function createGuard(msg,callback){
           } else {
         	  		var queryParam = {
       				idperson :	idperson,
+      				idguard:msg.idguard,
       				start_date : msg.start_date,
       				end_date : msg.end_date,
       				weekly_working_set : msg.weekly_working_set,
