@@ -44,7 +44,7 @@ function createAlert(msg,callback){
 	console.log("DateMy: "+msg.datemy);
 	var datemy = moment(msg.datemy).format('YYYY-MM-DD');
 	console.log("DateMy: "+datemy);
-	var timemy = moment(msg.timemy).format('HH-MM');
+	var timemy = moment(msg.timemy).format('HH-MM-SS');
 
 	 var queryParam = {
 		      idbuilding : msg.idbuilding,
