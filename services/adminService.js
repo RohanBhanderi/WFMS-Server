@@ -49,6 +49,7 @@ function editPerson(msg,callback){
 		lname: msg.lname,
 		address: msg.address,
 		city: msg.city,
+		state:msg.state,
 		zipcode: msg.zipcode,
 		email: msg.email,
 		phonenumber: msg.phonenumber
