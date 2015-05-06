@@ -296,14 +296,14 @@ function getGuardInfo(msg,callback){
 		}
 	});
 	
-	
+	/*
 	mysql.queryDb('SELECT * FROM client WHERE ?',[{idperson:msg.idperson}],function(err,rows){
 		if (err) {
 			callback({ status : 500, message : "Error while retrieving data" });
 		} else {
 			callback({ status : 200, data : rows });
 		}
-	});
+	});*/
 	
 }
 
@@ -327,7 +327,7 @@ function searchGuard(msg,callback){
 function addPatrolRecord(msg,callback){
 
 		var datemy = moment(msg.datemy).format('YYYY-MM-DD');
-		//var timemy = moment(msg.timemy).format('HH');
+		var timemy = moment(msg.timemy).format('HH');
 		console.log(datemy+"date");
 		
 
@@ -336,7 +336,7 @@ function addPatrolRecord(msg,callback){
 			      datemy : datemy,
 			      idguard : msg.idguard,
 			      description : msg.description,
-			      time : msg.timemy
+			      time : timemy
 			    };
 			    mysql
 			        .queryDb(
@@ -384,7 +384,7 @@ function addPatrolRecord(msg,callback){
 			                                date : datemy,
 			                                idguard : msg.idguard,
 			                                description : msg.description,
-			                                time : msg.timemy
+			                                time : timemy
 			                              }
 			                              mysql
 			                                  .queryDb(
@@ -446,7 +446,7 @@ function addPatrolRecord(msg,callback){
 				                                date : datemy,
 				                                idguard : msg.idguard,
 				                                description : msg.description,
-				                                time : msg.timemy
+				                                time : timemy
 				                              }
 				                              mysql
 				                                  .queryDb(
