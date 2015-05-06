@@ -109,11 +109,10 @@ function createGuard(msg,callback){
            callback({ status : 500, message : "Please try again later" });
           } else {
         	  		var queryParam = {
-        	  		
       				idperson :	idperson,
       				idguard:msg.idguard,
-      				start_date : msg.start_date,
-      				end_date : msg.end_date,
+      				start_date :moment(msg.start_date,'DD-MM-YYYY').toDate(),
+      				end_date : moment(msg.end_date,'DD-MM-YYYY').toDate(),
       				weekly_working_set : msg.weekly_working_set,
       				bgstatus: msg.bgstatus,
       				status:"Active"
