@@ -7,23 +7,21 @@ exports.db = {
 		// "port" : 3306,
 		// "user" : "root",
 		// "password" : "rohan",
-		// "database" : "cmpe_273",
+		// "database" : "wfms",
 		
 		//AWS
 		"host" : "team01wfms.ckpp00lq5on0.us-west-2.rds.amazonaws.com",
-        "port" : 3306,
+  		"port" : 3306,
 		"user" : "team01",
 		"password" : "finalproject",
-		"database" : "wfms",
-
-		"connectionLimit" : 100
+		"database" : "wfms"
 };
 
 /**
  * Database Pooling Configurations
  */
 exports.dbPool = {
-	"maxSize" : 50
+	"maxSize" : 100
 };
 
 /*

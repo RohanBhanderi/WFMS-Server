@@ -84,9 +84,9 @@ function logQueueReq(message, headers, deliveryInfo, m){
 }
 
 function publishQueue(conn,m,response){
-	console.log("----------------------------------");
-	console.log("Publishing To \nQueue: "+m.replyTo + "\nResponse:" + JSON.stringify(response));
-	console.log("----------------------------------");
+	// console.log("----------------------------------");
+	// console.log("Publishing To \nQueue: "+m.replyTo + "\nResponse:" + JSON.stringify(response));
+	// console.log("----------------------------------");
 	conn.publish(m.replyTo, response, {
 		contentType:'application/json',
 		contentEncoding:'utf-8',

@@ -41,3 +41,25 @@ add date time guard building
 Can client add more guards, afterwords ?
 How can client remove some assigned guards ?
 what about reassignment ? 
+
+
+------------ Performance Improvements ---------
+Front End
+1 GZip
+2 Minification
+3 SPA - Only JSON from backend
+4 Basket JS - Intelligent JS and CSS loading
+-- CDN AWS cloudfront
+
+Back End
+1 SQL Caching
+2 Data caching
+3 Connection pooling
+4 DB normalization
+5 Parallelize Everything - async.parallel
+--------------------------------------------------
+
+1. Time - guardService, alertService - addPatrolReport
+2. No of guards check in guards assignment
+3. Maps - Markers
+4. 
