@@ -115,7 +115,8 @@ function createGuard(msg,callback){
       				start_date : msg.start_date,
       				end_date : msg.end_date,
       				weekly_working_set : msg.weekly_working_set,
-      				bgstatus: msg.bgstatus
+      				bgstatus: msg.bgstatus,
+      				status:"Active"
         	  		}
 
       		mysql.queryDb("INSERT INTO guard SET ?", queryParam, function(err, response) {
@@ -193,7 +194,9 @@ function updateGuard(msg,callback){
 
 //listAll Guards
 function listAllGuards(msg,callback){
-	mysql.queryDb('select guard.*, person.*, gbs.idbuilding, building.buildingname from guard left join person on guard.idperson = person.idperson left join gaurdbuildingschedule as gbs on guard.idguard = gbs.idguard left join building on gbs.idbuilding = building.idbuilding',function(err,rows){
+	mysql.queryDb('select guard.*, person.*, gbs.idbuilding, building.buildingname from guard left join person on guard.idperson = person.idperson left join gaurdbuildingschedule as gbs on guard.idguard = gbs.idguard left join building on gbs.idbuilding = building.idbuilding where guard.status="Active"',function(err,rows){
+
+	//mysql.queryDb('select guard.*, person.*, gbs.idbuilding, building.buildingname from guard left join person on guard.idperson = person.idperson left join gaurdbuildingschedule as gbs on guard.idguard = gbs.idguard left join building on gbs.idbuilding = building.idbuilding',function(err,rows){
 		if (err) {
 			callback({ status : 500, message : "Error while retrieving data" });
 			//console.log("Error while listing all the guard details !!!"  + err);
@@ -213,7 +216,15 @@ function deleteGuard(msg,callback){
 	console.log(msg.idguard);
 	//idguard = msg.idguard;
 	
-	mysql.queryDb('DELETE FROM guard WHERE ?',[{idguard:msg.idguard}],function(err,response){
+	var newParam = {
+			status : "Disable"
+		};
+
+//	mysql.queryDb('UPDATE building SET ? WHERE ?? = ?',[newParam,'idbuilding',msg.buildingid],function(err,response){
+
+	mysql.queryDb('UPDATE guard SET ? WHERE ?? = ?',[newParam,'idguard',msg.idguard],function(err,response){
+
+	//mysql.queryDb('DELETE FROM guard WHERE ?',[{idguard:msg.idguard}],function(err,response){
 		if (err) {
 			//console.log("Error while deleting guard details !!!");
 			//console.log(err);
@@ -236,7 +247,7 @@ function getGuard(msg,callback){
 
 idguard = msg.idguard,
 
-mysql.queryDb('SELECT * FROM guard WHERE ?',[{idguard:idguard}],function(err,rows){
+mysql.queryDb('SELECT * FROM guard WHERE ? and status ="Active"',[{idguard:idguard}],function(err,rows){
 
 
 
