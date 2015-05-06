@@ -64,7 +64,7 @@ function createBuilding(msg,callback){
 
 //Get Building Client Report
 function getBuildingClientReport(msg,callback){
-	mysql.queryDb('SELECT buildingname, latitude, longitude FROM building WHERE ? and buildingstatus = "Active"',[{idclient:msg.idperson}],function(err,rows){
+	mysql.queryDb('SELECT buildingname, latitude, longitude, checkpoint FROM building WHERE ? and buildingstatus = "Active"',[{idclient:msg.idperson}],function(err,rows){
 		if (err) {
 			callback({ status : 500, message : "Error while retrieving data" });
 		} else {
