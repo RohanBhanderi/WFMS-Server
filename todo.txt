@@ -57,3 +57,9 @@ Back End
 3 Connection pooling
 4 DB normalization
 5 Parallelize Everything - async.parallel
+--------------------------------------------------
+
+1. Time - guardService, alertService - addPatrolReport
+2. No of guards check in guards assignment
+3. Maps - Markers
+4. 
