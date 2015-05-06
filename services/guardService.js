@@ -86,53 +86,72 @@ function createGuard(msg,callback){
         last_login:created,
         password_salt:new_salt
     };
+    mysql.queryDb("select *  from person where ?",[{email:un}],function(err,result){
+		
+        if(err) {
+        	     callback({ status : 500, message : "Please try again later" });
+        		} 
+        		    		
+         else {
+        	 console.log(result.length);
+        	 if(!(result.length==0))
+        		 {
+        		 console.log("inside if"+result.length);
+        		 callback({ status : 200, message : "User-EmailID already Exists-" });
+        		  console.log("Email ID already Exists");
+        		 }
+        	 else
+        		 {
+        		 mysql.queryDb('insert into login set ?',data,function(err,result){
+        		      if(err) {
+        		        console.log(err);
+        		            callback({ status : 500, message : "Please try again later" });
+        		      } else {
+        		            
+        		        var idperson = result.insertId;
 
-    mysql.queryDb('insert into login set ?',data,function(err,result){
-      if(err) {
-        console.log(err);
-            callback({ status : 500, message : "Please try again later" });
-      } else {
-            
-        var idperson = result.insertId;
+        		        mysql.queryDb('insert into person set ?',{idperson: idperson,fname : fn,
+        		                  lname : ln,
+        		                  email : un,
+        		                  address: address,
+        		                  city:city,
+        		                  state:state,
+        		                  zipcode:zipcode,
+        		                  phonenumber:phonenumber
+        		                  },
+        		        function(err,result){
+        		          if(err) {
+        		           callback({ status : 500, message : "Please try again later" });
+        		          } else {
+        		        	  		var queryParam = {
+        		        	  		
+        		      				idperson :	idperson,
+        		      				idguard:msg.idguard,
+        		      				start_date : msg.start_date,
+        		      				end_date : msg.end_date,
+        		      				weekly_working_set : msg.weekly_working_set,
+        		      				bgstatus: msg.bgstatus,
+        		      				status:"Active"
+        		        	  		}
 
-        mysql.queryDb('insert into person set ?',{idperson: idperson,fname : fn,
-                  lname : ln,
-                  email : un,
-                  address: address,
-                  city:city,
-                  state:state,
-                  zipcode:zipcode,
-                  phonenumber:phonenumber
-                  },
-        function(err,result){
-          if(err) {
-           callback({ status : 500, message : "Please try again later" });
-          } else {
-        	  		var queryParam = {
-        	  		
-      				idperson :	idperson,
-      				idguard:msg.idguard,
-      				start_date : msg.start_date,
-      				end_date : msg.end_date,
-      				weekly_working_set : msg.weekly_working_set,
-      				bgstatus: msg.bgstatus,
-      				status:"Active"
-        	  		}
-
-      		mysql.queryDb("INSERT INTO guard SET ?", queryParam, function(err, response) {
-      			if (err) {
-      				console.log("Error while perfoming query !!!");
-      				callback({ status : 500, message : "Please try again later" });
-      			} else {
-      				console.log("success so far");
-      				callback({ status : 200, message : "Guard has been added Succesfully" });
-      			}
-      		});
-        	  
-          }
-        });
-      }
-    });
+        		      		mysql.queryDb("INSERT INTO guard SET ?", queryParam, function(err, response) {
+        		      			if (err) {
+        		      				console.log("Error while perfoming query !!!");
+        		      				callback({ status : 500, message : "Please try again later" });
+        		      			} else {
+        		      				console.log("success so far");
+        		      				callback({ status : 200, message : "Guard has been added Succesfully" });
+        		      			}
+        		      		});
+        		        	  
+        		          }
+        		        });
+        		      }
+        		    });
+        		 }
+        		 }
+        	});
+   
 	}catch(e){console.log(e);
 	}
 }
